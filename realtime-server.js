@@ -68,9 +68,15 @@ async function connectPostgres() {
 // Crear servidor HTTP
 const server = createServer((req, res) => {
   if (req.url === '/healthz') {
-    const healthy = pgConnected;
-    res.writeHead(healthy ? 200 : 503, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ ok: healthy, postgres: pgConnected }));
+    // Liveness endpoint: no debe tumbar el contenedor por una caída temporal de PG.
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true, postgres: pgConnected }));
+    return;
+  }
+  if (req.url === '/readyz') {
+    const ready = pgConnected;
+    res.writeHead(ready ? 200 : 503, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: ready, postgres: pgConnected }));
     return;
   }
   res.writeHead(404, { 'Content-Type': 'text/plain' });
@@ -116,5 +122,12 @@ process.on('SIGTERM', () => {
 });
 
 process.on('SIGINT', () => {
-  process.emit('SIGTERM');
+  shuttingDown = true;
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  const closeWs = new Promise((resolve) => server.close(resolve));
+  const closePg = pgClient ? pgClient.end().catch(() => undefined) : Promise.resolve();
+  Promise.all([closeWs, closePg]).finally(() => {
+    console.log('✔️  Servidor cerrado');
+    process.exit(0);
+  });
 });
