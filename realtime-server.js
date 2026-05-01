@@ -67,6 +67,11 @@ async function connectPostgres() {
 
 // Crear servidor HTTP
 const server = createServer((req, res) => {
+  if (req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true, service: 'realtime-ws' }));
+    return;
+  }
   if (req.url === '/healthz') {
     // Liveness endpoint: no debe tumbar el contenedor por una caída temporal de PG.
     res.writeHead(200, { 'Content-Type': 'application/json' });
