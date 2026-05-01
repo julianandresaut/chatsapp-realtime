@@ -1,0 +1,23 @@
+{
+  "name": "chatsapp-realtime",
+  "version": "1.0.0",
+  "description": "Servidor WebSocket para notificaciones en tiempo real desde PostgreSQL",
+  "main": "realtime-server.js",
+  "scripts": {
+    "start": "node realtime-server.js",
+    "dev": "nodemon realtime-server.js"
+  },
+  "keywords": ["websocket", "postgres", "realtime"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.14.2",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
